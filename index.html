@@ -417,16 +417,7 @@
 
     <div class="fg">
       <p class="slabel">豚房</p>
-      <div class="select-wrap">
-        <select id="pen-select">
-          <option value="">選択してください</option>
-          <option>A棟-1房</option><option>A棟-2房</option><option>A棟-3房</option>
-          <option>B棟-1房</option><option>B棟-2房</option><option>B棟-3房</option>
-          <option>C棟-1房</option><option>C棟-2房</option><option>C棟-3房</option>
-          <option value="custom">その他（手入力）</option>
-        </select>
-      </div>
-      <input type="text" id="pen-custom" placeholder="豚房名を入力" style="display:none; margin-top:6px;" />
+      <input type="text" id="pen-select" placeholder="例: A棟-1房" />
     </div>
 
     <div class="fg">
@@ -593,10 +584,6 @@
   initDOB();
 
   // Pen select
-  document.getElementById('pen-select').addEventListener('change', function() {
-    document.getElementById('pen-custom').style.display = this.value === 'custom' ? 'block' : 'none';
-  });
-
   function setGender(g, el) {
     selectedGender = g;
     document.querySelectorAll('.gbtn').forEach(b => b.classList.remove('active'));
@@ -634,9 +621,7 @@
   }
 
   function getPen() {
-    const sel = document.getElementById('pen-select').value;
-    if (sel === 'custom') return document.getElementById('pen-custom').value.trim();
-    return sel;
+    return document.getElementById('pen-select').value.trim();
   }
 
   function showToast(msg) {
@@ -653,7 +638,7 @@
     const wt = parseFloat(weightStr);
     if (!ear) { showToast('⚠ 耳刻を入力してください'); return; }
     if (!dob) { showToast('⚠ 生年月日を入力してください'); return; }
-    if (!pen) { showToast('⚠ 豚房を選択してください'); return; }
+    if (!pen) { showToast('⚠ 豚房を入力してください'); return; }
     if (!weightStr || isNaN(wt)) { showToast('⚠ 体重を入力してください'); return; }
 
     const measureVal = document.getElementById('measure-date').value;
@@ -677,8 +662,6 @@
     document.getElementById('dob-m').value = '';
     document.getElementById('dob-d').value = '';
     document.getElementById('pen-select').value = '';
-    document.getElementById('pen-custom').style.display = 'none';
-    document.getElementById('pen-custom').value = '';
     document.getElementById('measure-date').value = today_str();
     selectedGender = '雄';
     document.querySelectorAll('.gbtn').forEach(b => b.classList.remove('active'));
