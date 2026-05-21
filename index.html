@@ -234,6 +234,7 @@
     letter-spacing: .02em;
   }
   .save-btn:active { opacity: .85; transform: scale(.99); }
+  .save-btn:disabled { opacity: .5; cursor: not-allowed; }
 
   .excel-btn {
     width: 100%;
@@ -321,6 +322,19 @@
   .dg-good { background: var(--accent-light); color: var(--accent-text); }
   .dg-low { background: var(--warn-light); color: var(--warn); }
 
+  .del-btn {
+    background: none;
+    border: 1px solid var(--border2);
+    border-radius: 6px;
+    padding: 4px 8px;
+    font-size: 13px;
+    color: var(--text3);
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: all .15s;
+  }
+  .del-btn:active { background: var(--danger-light); color: var(--danger); border-color: var(--danger); }
+
   .empty {
     text-align: center;
     padding: 40px 20px;
@@ -329,9 +343,6 @@
     line-height: 2;
   }
   .empty-icon { font-size: 36px; display: block; margin-bottom: 8px; opacity: .4; }
-
-  /* Divider */
-  .divider { height: 1px; background: var(--border); margin: 14px 0; }
 
   /* Select arrow */
   .select-wrap { position: relative; }
@@ -448,7 +459,7 @@
       <input type="date" id="measure-date" style="width:100%;border:1px solid var(--border);border-radius:var(--radius);padding:11px 13px;font-size:15px;font-family:var(--sans);background:var(--surface);color:var(--text);outline:none;appearance:none;-webkit-appearance:none;" />
     </div>
 
-    <button class="save-btn" onclick="saveRecord()">記録する</button>
+    <button class="save-btn" id="save-btn" onclick="saveRecord()">記録する</button>
     <button class="excel-btn" onclick="exportExcel()">
       <svg class="excel-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
         <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm-1 1.5L18.5 9H13V3.5zM8.5 18l2-3-2-3h1.8l1.2 2 1.2-2H14.5l-2 3 2 3H12.7l-1.2-2-1.2 2H8.5z"/>
@@ -495,29 +506,59 @@
 <div class="toast" id="toast"></div>
 
 <script>
+  // ========== 設定 ==========
+  const API_BASE = 'https://crimson-credit-a3df.daxiqitai2.workers.dev';
+  const KV_KEY   = 'YOUR_KV_KEY'; // ← ここを変更する
+
+  // ========== 状態 ==========
   let weightStr = '';
   let selectedGender = '雄';
   let records = [];
 
-  function today_str() {
+  // ========== 初期化 ==========
+  document.addEventListener('DOMContentLoaded', function() {
+    const md = document.getElementById('measure-date');
+    md.value = todayStr();
+    md.max = todayStr();
+    initDOB();
+    loadRecords();
+  });
+
+  function todayStr() {
     const t = new Date();
     return `${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,'0')}-${String(t.getDate()).padStart(2,'0')}`;
   }
 
-  // 測定日の初期値を今日に設定
-  document.addEventListener('DOMContentLoaded', function() {
-    const md = document.getElementById('measure-date');
-    md.value = today_str();
-    md.max = today_str();
-  });
+  // ========== KV 読み込み ==========
+  async function loadRecords() {
+    try {
+      const res = await fetch(`${API_BASE}/api/get?key=${encodeURIComponent(KV_KEY)}`);
+      if (!res.ok) throw new Error('通信エラー');
+      const data = await res.json();
+      records = data.value ? JSON.parse(data.value) : [];
+      updateCount();
+      renderHistory();
+    } catch (e) {
+      showToast('⚠ データ読み込み失敗: ' + e.message);
+    }
+  }
 
-  // DOB selects — 今日から4〜8ヶ月前の範囲を動的生成
+  // ========== KV 保存 ==========
+  async function saveToKV() {
+    const res = await fetch(`${API_BASE}/api/set`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ key: KV_KEY, value: JSON.stringify(records) })
+    });
+    if (!res.ok) throw new Error('保存エラー');
+  }
+
+  // ========== DOB セレクト ==========
   function initDOB() {
     const today = new Date();
     const minDate = new Date(today.getFullYear(), today.getMonth() - 8, today.getDate());
     const maxDate = new Date(today.getFullYear(), today.getMonth() - 4, today.getDate());
 
-    // 年月の範囲を収集
     const months = [];
     let cur = new Date(minDate.getFullYear(), minDate.getMonth(), 1);
     const end = new Date(maxDate.getFullYear(), maxDate.getMonth(), 1);
@@ -526,12 +567,10 @@
       cur.setMonth(cur.getMonth() + 1);
     }
 
-    // 年セレクト
     const years = [...new Set(months.map(x => x.y))];
     const selY = document.getElementById('dob-y');
     years.forEach(y => { const o = document.createElement('option'); o.value = y; o.textContent = y; selY.appendChild(o); });
 
-    // 月セレクト（年に連動）
     function updateMonths() {
       const y = parseInt(selY.value);
       const selM = document.getElementById('dob-m');
@@ -539,15 +578,12 @@
       selM.innerHTML = '<option value="">月</option>';
       months.filter(x => x.y === y).forEach(x => {
         const o = document.createElement('option');
-        o.value = x.m;
-        o.textContent = x.m;
-        selM.appendChild(o);
+        o.value = x.m; o.textContent = x.m; selM.appendChild(o);
       });
       if (prevM) selM.value = prevM;
       updateDays();
     }
 
-    // 日セレクト（年月に連動）
     function updateDays() {
       const y = parseInt(selY.value);
       const m = parseInt(document.getElementById('dob-m').value);
@@ -555,15 +591,12 @@
       const prevD = selD.value;
       selD.innerHTML = '<option value="">日</option>';
       if (!y || !m) return;
-
       const daysInMonth = new Date(y, m, 0).getDate();
       for (let d = 1; d <= daysInMonth; d++) {
         const date = new Date(y, m - 1, d);
         if (date < minDate || date > maxDate) continue;
         const o = document.createElement('option');
-        o.value = d;
-        o.textContent = d;
-        selD.appendChild(o);
+        o.value = d; o.textContent = d; selD.appendChild(o);
       }
       if (prevD) selD.value = prevD;
     }
@@ -571,25 +604,23 @@
     selY.addEventListener('change', updateMonths);
     document.getElementById('dob-m').addEventListener('change', updateDays);
 
-    // 初期値：最新の年月を選択
     if (years.length > 0) {
       selY.value = years[years.length - 1];
       updateMonths();
-      // 最新月を選択
       const selM = document.getElementById('dob-m');
       if (selM.options.length > 1) selM.value = selM.options[selM.options.length - 1].value;
       updateDays();
     }
   }
-  initDOB();
 
-  // Pen select
+  // ========== 性別 ==========
   function setGender(g, el) {
     selectedGender = g;
     document.querySelectorAll('.gbtn').forEach(b => b.classList.remove('active'));
     el.classList.add('active');
   }
 
+  // ========== テンキー ==========
   function kp(v) {
     if (v === 'del') {
       weightStr = weightStr.slice(0, -1);
@@ -606,6 +637,7 @@
     else { d.textContent = weightStr; u.style.display = 'inline'; }
   }
 
+  // ========== DOB 取得 ==========
   function getDOB() {
     const y = document.getElementById('dob-y').value;
     const m = document.getElementById('dob-m').value;
@@ -620,58 +652,86 @@
     return Math.floor((base - new Date(y, m-1, d)) / 86400000);
   }
 
-  function getPen() {
-    return document.getElementById('pen-select').value.trim();
-  }
-
-  function showToast(msg) {
-    const el = document.getElementById('toast');
-    el.textContent = msg;
-    el.classList.add('show');
-    setTimeout(() => el.classList.remove('show'), 2400);
-  }
-
-  function saveRecord() {
+  // ========== 記録保存 ==========
+  async function saveRecord() {
     const ear = document.getElementById('ear-tag').value.trim();
     const dob = getDOB();
-    const pen = getPen();
-    const wt = parseFloat(weightStr);
-    if (!ear) { showToast('⚠ 耳刻を入力してください'); return; }
-    if (!dob) { showToast('⚠ 生年月日を入力してください'); return; }
-    if (!pen) { showToast('⚠ 豚房を入力してください'); return; }
-    if (!weightStr || isNaN(wt)) { showToast('⚠ 体重を入力してください'); return; }
-
+    const pen = document.getElementById('pen-select').value.trim();
+    const wt  = parseFloat(weightStr);
     const measureVal = document.getElementById('measure-date').value;
+
+    if (!ear)        { showToast('⚠ 耳刻を入力してください'); return; }
+    if (!dob)        { showToast('⚠ 生年月日を入力してください'); return; }
+    if (!pen)        { showToast('⚠ 豚房を入力してください'); return; }
+    if (!weightStr || isNaN(wt)) { showToast('⚠ 体重を入力してください'); return; }
     if (!measureVal) { showToast('⚠ 測定日を選択してください'); return; }
-    const mDate = new Date(measureVal);
-    const dateStr = `${mDate.getFullYear()}/${String(mDate.getMonth()+1).padStart(2,'0')}/${String(mDate.getDate()).padStart(2,'0')}`;
-    const age = calcAge(dob, measureVal);
-    const dg = age > 0 ? wt * 1000 / age : null;
 
-    records.unshift({ ear, dob, pen, weight: wt, gender: selectedGender, date: dateStr, age, dg });
-    updateCount();
-    renderHistory();
-    showToast('✓ 記録しました');
+    const btn = document.getElementById('save-btn');
+    btn.disabled = true;
+    btn.textContent = '保存中...';
 
-    // Reset
-    weightStr = '';
-    document.getElementById('wdisp').textContent = '—';
-    document.getElementById('wunit').style.display = 'none';
-    document.getElementById('ear-tag').value = '';
-    document.getElementById('dob-y').value = '';
-    document.getElementById('dob-m').value = '';
-    document.getElementById('dob-d').value = '';
-    document.getElementById('pen-select').value = '';
-    document.getElementById('measure-date').value = today_str();
-    selectedGender = '雄';
-    document.querySelectorAll('.gbtn').forEach(b => b.classList.remove('active'));
-    document.getElementById('g-boar').classList.add('active');
+    try {
+      const mDate = new Date(measureVal);
+      const dateStr = `${mDate.getFullYear()}/${String(mDate.getMonth()+1).padStart(2,'0')}/${String(mDate.getDate()).padStart(2,'0')}`;
+      const age = calcAge(dob, measureVal);
+      const dg  = age > 0 ? wt * 1000 / age : null;
+
+      records.unshift({
+        id: Date.now().toString(),
+        ear, dob, pen,
+        weight: wt,
+        gender: selectedGender,
+        date: dateStr,
+        age, dg
+      });
+
+      await saveToKV();
+      updateCount();
+      renderHistory();
+      showToast('✓ 記録しました');
+
+      // リセット
+      weightStr = '';
+      document.getElementById('wdisp').textContent = '—';
+      document.getElementById('wunit').style.display = 'none';
+      document.getElementById('ear-tag').value = '';
+      document.getElementById('dob-y').value = '';
+      document.getElementById('dob-m').value = '';
+      document.getElementById('dob-d').value = '';
+      document.getElementById('pen-select').value = '';
+      document.getElementById('measure-date').value = todayStr();
+      selectedGender = '雄';
+      document.querySelectorAll('.gbtn').forEach(b => b.classList.remove('active'));
+      document.getElementById('g-boar').classList.add('active');
+    } catch(e) {
+      records.shift();
+      showToast('❌ 保存失敗: ' + e.message);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = '記録する';
+    }
   }
 
+  // ========== 削除 ==========
+  async function deleteRecord(id) {
+    if (!confirm('この記録を削除しますか？')) return;
+    records = records.filter(r => r.id !== id);
+    try {
+      await saveToKV();
+      updateCount();
+      renderHistory();
+      showToast('✓ 削除しました');
+    } catch(e) {
+      showToast('❌ 削除失敗: ' + e.message);
+    }
+  }
+
+  // ========== 件数更新 ==========
   function updateCount() {
     document.getElementById('rec-count').textContent = records.length + '件';
   }
 
+  // ========== 履歴描画 ==========
   function renderHistory() {
     const el = document.getElementById('history-list');
     const sg = document.getElementById('stats-grid');
@@ -682,17 +742,17 @@
     }
     sg.style.display = 'grid';
 
-    const dgVals = records.filter(r => r.dg !== null).map(r => r.dg);
-    const wtVals = records.map(r => r.weight);
+    const dgVals  = records.filter(r => r.dg !== null).map(r => r.dg);
+    const wtVals  = records.map(r => r.weight);
     const ageVals = records.map(r => r.age);
-    const avgDG = dgVals.length ? dgVals.reduce((a,b)=>a+b,0)/dgVals.length : null;
-    const avgWT = wtVals.reduce((a,b)=>a+b,0)/wtVals.length;
-    const avgAge = ageVals.reduce((a,b)=>a+b,0)/ageVals.length;
+    const avgDG   = dgVals.length ? dgVals.reduce((a,b)=>a+b,0)/dgVals.length : null;
+    const avgWT   = wtVals.reduce((a,b)=>a+b,0)/wtVals.length;
+    const avgAge  = ageVals.reduce((a,b)=>a+b,0)/ageVals.length;
 
     document.getElementById('stat-count').innerHTML = records.length + '<span class="stat-unit">件</span>';
-    document.getElementById('stat-dg').innerHTML = avgDG ? Math.round(avgDG) + '<span class="stat-unit">g/日</span>' : '—';
-    document.getElementById('stat-wt').innerHTML = avgWT.toFixed(1) + '<span class="stat-unit">kg</span>';
-    document.getElementById('stat-age').innerHTML = Math.round(avgAge) + '<span class="stat-unit">日</span>';
+    document.getElementById('stat-dg').innerHTML    = avgDG ? Math.round(avgDG) + '<span class="stat-unit">g/日</span>' : '—';
+    document.getElementById('stat-wt').innerHTML    = avgWT.toFixed(1) + '<span class="stat-unit">kg</span>';
+    document.getElementById('stat-age').innerHTML   = Math.round(avgAge) + '<span class="stat-unit">日</span>';
 
     el.innerHTML = records.map(r => {
       const dgBadge = r.dg !== null
@@ -700,21 +760,25 @@
         : '';
       return `<div class="hitem">
         <div class="hitem-left">
-          <div class="hitem-ear">${r.ear} ${dgBadge}</div>
-          <div class="hitem-meta">${r.pen} · ${r.gender} · ${r.age}日齢 · ${r.dob}<br>${r.date}</div>
+          <div class="hitem-ear">${escHtml(r.ear)} ${dgBadge}</div>
+          <div class="hitem-meta">${escHtml(r.pen)} · ${r.gender} · ${r.age}日齢 · ${r.dob}<br>${r.date}</div>
         </div>
-        <div style="text-align:right;">
-          <div class="hitem-weight">${r.weight.toFixed(1)}</div>
-          <div class="hitem-wunit">kg</div>
+        <div style="text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
+          <div>
+            <div class="hitem-weight">${r.weight.toFixed(1)}</div>
+            <div class="hitem-wunit">kg</div>
+          </div>
+          <button class="del-btn" onclick="deleteRecord('${r.id}')">🗑</button>
         </div>
       </div>`;
     }).join('');
   }
 
+  // ========== Excel出力 ==========
   function exportExcel() {
     if (records.length === 0) { showToast('⚠ 記録がありません'); return; }
     const data = [
-      ['測定日時', '耳刻', '生年月日', '日齢（日）', '豚房', '性別', '体重（kg）', 'DG（g/日）']
+      ['測定日', '耳刻', '生年月日', '日齢（日）', '豚房', '性別', '体重（kg）', 'DG（g/日）']
     ];
     records.forEach(r => {
       data.push([
@@ -725,16 +789,6 @@
     });
     const ws = XLSX.utils.aoa_to_sheet(data);
     ws['!cols'] = [{wch:18},{wch:14},{wch:12},{wch:10},{wch:12},{wch:6},{wch:12},{wch:12}];
-
-    // Style header row
-    const range = XLSX.utils.decode_range(ws['!ref']);
-    for (let C = range.s.c; C <= range.e.c; C++) {
-      const cell = ws[XLSX.utils.encode_cell({r:0, c:C})];
-      if (cell) {
-        cell.s = { font: { bold: true }, fill: { fgColor: { rgb: '2D5A3D' } }, fontColor: { rgb: 'FFFFFF' } };
-      }
-    }
-
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, '体重記録');
     const today = new Date();
@@ -743,12 +797,25 @@
     showToast('✓ Excelをダウンロードしました');
   }
 
+  // ========== タブ切替 ==========
   function switchTab(tab) {
-    document.getElementById('tab-input').style.display = tab === 'input' ? 'block' : 'none';
+    document.getElementById('tab-input').style.display   = tab === 'input'   ? 'block' : 'none';
     document.getElementById('tab-history').style.display = tab === 'history' ? 'block' : 'none';
     document.querySelectorAll('.tab-btn').forEach((t,i) => {
       t.classList.toggle('active', (i===0 && tab==='input')||(i===1 && tab==='history'));
     });
+  }
+
+  // ========== ユーティリティ ==========
+  function showToast(msg) {
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.classList.add('show');
+    setTimeout(() => el.classList.remove('show'), 2400);
+  }
+
+  function escHtml(str) {
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   }
 </script>
 </body>
