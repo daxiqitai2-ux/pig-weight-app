@@ -9,427 +9,131 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
   :root {
-    --bg: #f5f3ee;
-    --surface: #ffffff;
-    --surface2: #f0ede6;
-    --border: #e0dbd0;
-    --border2: #ccc8bc;
-    --text: #1a1814;
-    --text2: #6b6760;
-    --text3: #9e9a92;
-    --accent: #2d5a3d;
-    --accent-light: #e8f2eb;
-    --accent-text: #1e3e2a;
-    --warn: #7a4f1a;
-    --warn-light: #fdf3e3;
-    --danger: #8b2020;
-    --danger-light: #fdeaea;
-    --radius: 10px;
-    --radius-lg: 16px;
-    --mono: 'DM Mono', monospace;
-    --sans: 'Noto Sans JP', sans-serif;
+    --bg: #f5f3ee; --surface: #ffffff; --surface2: #f0ede6;
+    --border: #e0dbd0; --border2: #ccc8bc;
+    --text: #1a1814; --text2: #6b6760; --text3: #9e9a92;
+    --accent: #2d5a3d; --accent-light: #e8f2eb; --accent-text: #1e3e2a;
+    --warn: #7a4f1a; --warn-light: #fdf3e3;
+    --danger: #8b2020; --danger-light: #fdeaea;
+    --radius: 10px; --radius-lg: 16px;
+    --mono: 'DM Mono', monospace; --sans: 'Noto Sans JP', sans-serif;
   }
+  body { font-family: var(--sans); background: var(--bg); color: var(--text); min-height: 100vh; display: flex; justify-content: center; align-items: flex-start; }
+  .shell { width: 100%; max-width: 480px; min-height: 100vh; background: var(--bg); display: flex; flex-direction: column; }
 
-  body {
-    font-family: var(--sans);
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-    padding: 0;
-  }
-
-  .shell {
-    width: 100%;
-    max-width: 480px;
-    min-height: 100vh;
-    background: var(--bg);
-    display: flex;
-    flex-direction: column;
-  }
-
-  /* ========== 農場選択画面 ========== */
-  #farm-screen {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    min-height: 100vh;
-    padding: 32px 24px;
-  }
-  .farm-logo {
-    font-size: 56px;
-    margin-bottom: 16px;
-  }
-  .farm-title {
-    font-size: 20px;
-    font-weight: 700;
-    color: var(--accent);
-    margin-bottom: 6px;
-    letter-spacing: .02em;
-  }
-  .farm-sub {
-    font-size: 12px;
-    color: var(--text3);
-    margin-bottom: 32px;
-    font-family: var(--mono);
-  }
-  .farm-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    padding: 24px;
-    width: 100%;
-    max-width: 360px;
-    box-shadow: 0 4px 20px rgba(0,0,0,.08);
-  }
-  .farm-card-title {
-    font-size: 13px;
-    font-weight: 700;
-    color: var(--text3);
-    letter-spacing: .08em;
-    text-transform: uppercase;
-    margin-bottom: 10px;
-  }
-  .farm-input {
-    width: 100%;
-    border: 1.5px solid var(--border);
-    border-radius: var(--radius);
-    padding: 13px 14px;
-    font-size: 16px;
-    font-family: var(--sans);
-    background: var(--surface);
-    color: var(--text);
-    outline: none;
-    transition: border-color .15s;
-    margin-bottom: 12px;
-  }
+  /* 農場選択 */
+  #farm-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; padding: 32px 24px; }
+  .farm-logo { font-size: 56px; margin-bottom: 16px; }
+  .farm-title { font-size: 20px; font-weight: 700; color: var(--accent); margin-bottom: 6px; }
+  .farm-sub { font-size: 12px; color: var(--text3); margin-bottom: 32px; font-family: var(--mono); }
+  .farm-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 24px; width: 100%; max-width: 360px; box-shadow: 0 4px 20px rgba(0,0,0,.08); }
+  .farm-card-title { font-size: 13px; font-weight: 700; color: var(--text3); letter-spacing: .08em; text-transform: uppercase; margin-bottom: 10px; }
+  .farm-input { width: 100%; border: 1.5px solid var(--border); border-radius: var(--radius); padding: 13px 14px; font-size: 16px; font-family: var(--sans); background: var(--surface); color: var(--text); outline: none; transition: border-color .15s; margin-bottom: 12px; }
   .farm-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(45,90,61,.12); }
   .farm-input::placeholder { color: var(--text3); }
-  .farm-btn {
-    width: 100%;
-    padding: 14px;
-    border: none;
-    border-radius: var(--radius-lg);
-    background: var(--accent);
-    color: #fff;
-    font-size: 15px;
-    font-family: var(--sans);
-    font-weight: 700;
-    cursor: pointer;
-    transition: opacity .15s;
-    letter-spacing: .02em;
-  }
+  .farm-btn { width: 100%; padding: 14px; border: none; border-radius: var(--radius-lg); background: var(--accent); color: #fff; font-size: 15px; font-family: var(--sans); font-weight: 700; cursor: pointer; letter-spacing: .02em; }
   .farm-btn:active { opacity: .85; }
-  .farm-history {
-    margin-top: 20px;
-    width: 100%;
-    max-width: 360px;
-  }
-  .farm-history-title {
-    font-size: 11px;
-    font-weight: 700;
-    color: var(--text3);
-    letter-spacing: .08em;
-    text-transform: uppercase;
-    margin-bottom: 8px;
-  }
-  .farm-history-item {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 11px 14px;
-    margin-bottom: 6px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    cursor: pointer;
-    transition: background .15s;
-  }
+  .farm-error { color: var(--danger); font-size: 12px; margin-top: -6px; margin-bottom: 10px; display: none; }
+  .farm-history { margin-top: 20px; width: 100%; max-width: 360px; }
+  .farm-history-title { font-size: 11px; font-weight: 700; color: var(--text3); letter-spacing: .08em; text-transform: uppercase; margin-bottom: 8px; }
+  .farm-history-item { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 11px 14px; margin-bottom: 6px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; }
   .farm-history-item:active { background: var(--accent-light); }
   .farm-history-name { font-size: 14px; font-weight: 700; color: var(--text); }
   .farm-history-arrow { color: var(--text3); font-size: 16px; }
-  .farm-error {
-    color: var(--danger);
-    font-size: 12px;
-    margin-top: -6px;
-    margin-bottom: 10px;
-    display: none;
-  }
 
-  /* ========== メインアプリ ========== */
+  /* メインアプリ */
   #app-screen { display: none; flex-direction: column; flex: 1; }
-
-  /* Header */
-  .header {
-    background: var(--accent);
-    color: #fff;
-    padding: 16px 20px;
-    position: sticky;
-    top: 0;
-    z-index: 10;
-  }
+  .header { background: var(--accent); color: #fff; padding: 16px 20px; position: sticky; top: 0; z-index: 10; }
   .header-top { display: flex; align-items: center; justify-content: space-between; }
-  .header h1 { font-size: 16px; font-weight: 700; letter-spacing: .02em; }
+  .header h1 { font-size: 16px; font-weight: 700; }
   .header-sub { font-size: 11px; opacity: .7; margin-top: 2px; font-family: var(--mono); }
   .header-right { display: flex; align-items: center; gap: 8px; }
-  .record-count {
-    background: rgba(255,255,255,.15);
-    border-radius: 20px;
-    padding: 4px 10px;
-    font-size: 12px;
-    font-family: var(--mono);
-  }
-  .switch-farm-btn {
-    background: rgba(255,255,255,.15);
-    border: none;
-    border-radius: 20px;
-    padding: 4px 10px;
-    font-size: 11px;
-    font-family: var(--sans);
-    color: #fff;
-    cursor: pointer;
-    transition: background .15s;
-  }
-  .switch-farm-btn:active { background: rgba(255,255,255,.25); }
+  .record-count { background: rgba(255,255,255,.15); border-radius: 20px; padding: 4px 10px; font-size: 12px; font-family: var(--mono); }
+  .switch-farm-btn { background: rgba(255,255,255,.15); border: none; border-radius: 20px; padding: 4px 10px; font-size: 11px; font-family: var(--sans); color: #fff; cursor: pointer; }
 
-  /* Tabs */
-  .tabs {
-    display: flex;
-    background: var(--surface);
-    border-bottom: 1px solid var(--border);
-    position: sticky;
-    top: 65px;
-    z-index: 9;
-  }
-  .tab-btn {
-    flex: 1;
-    padding: 12px 0;
-    font-size: 13px;
-    font-family: var(--sans);
-    font-weight: 500;
-    border: none;
-    background: transparent;
-    color: var(--text3);
-    cursor: pointer;
-    border-bottom: 2px solid transparent;
-    transition: all .2s;
-  }
+  /* タブ */
+  .tabs { display: flex; background: var(--surface); border-bottom: 1px solid var(--border); position: sticky; top: 65px; z-index: 9; }
+  .tab-btn { flex: 1; padding: 11px 0; font-size: 12px; font-family: var(--sans); font-weight: 500; border: none; background: transparent; color: var(--text3); cursor: pointer; border-bottom: 2px solid transparent; transition: all .2s; }
   .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
 
-  /* Main content */
   .content { padding: 16px; flex: 1; }
-
-  .slabel {
-    font-size: 11px;
-    font-weight: 700;
-    color: var(--text3);
-    letter-spacing: .08em;
-    text-transform: uppercase;
-    margin-bottom: 6px;
-  }
+  .slabel { font-size: 11px; font-weight: 700; color: var(--text3); letter-spacing: .08em; text-transform: uppercase; margin-bottom: 6px; }
+  .slabel .opt { font-size: 10px; color: var(--text3); font-weight: 400; letter-spacing: 0; text-transform: none; margin-left: 4px; }
   .fg { margin-bottom: 14px; }
 
   input[type="text"], input[type="number"], select {
-    width: 100%;
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 11px 13px;
-    font-size: 15px;
-    font-family: var(--sans);
-    background: var(--surface);
-    color: var(--text);
-    outline: none;
-    transition: border-color .15s;
-    appearance: none;
-    -webkit-appearance: none;
+    width: 100%; border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 11px 13px; font-size: 15px; font-family: var(--sans);
+    background: var(--surface); color: var(--text); outline: none;
+    transition: border-color .15s; appearance: none; -webkit-appearance: none;
   }
   input:focus, select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(45,90,61,.12); }
   input::placeholder { color: var(--text3); }
 
   .date-row { display: flex; align-items: center; gap: 6px; }
   .dsep { color: var(--text3); font-size: 18px; flex-shrink: 0; }
+  .select-wrap { position: relative; }
+  .select-wrap::after { content: '▾'; position: absolute; right: 14px; top: 50%; transform: translateY(-50%); color: var(--text3); pointer-events: none; font-size: 14px; }
 
   .gender-row { display: flex; gap: 6px; }
-  .gbtn {
-    flex: 1;
-    padding: 10px 0;
-    border: 1px solid var(--border2);
-    border-radius: var(--radius);
-    background: var(--surface);
-    color: var(--text2);
-    font-size: 13px;
-    font-family: var(--sans);
-    font-weight: 500;
-    cursor: pointer;
-    transition: all .15s;
-  }
-  .gbtn.active {
-    background: var(--accent-light);
-    color: var(--accent-text);
-    border-color: var(--accent);
-    font-weight: 700;
-  }
+  .gbtn { flex: 1; padding: 10px 0; border: 1px solid var(--border2); border-radius: var(--radius); background: var(--surface); color: var(--text2); font-size: 13px; font-family: var(--sans); font-weight: 500; cursor: pointer; transition: all .15s; }
+  .gbtn.active { background: var(--accent-light); color: var(--accent-text); border-color: var(--accent); font-weight: 700; }
 
-  .weight-display {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 14px 16px;
-    margin-bottom: 8px;
-    display: flex;
-    align-items: baseline;
-    gap: 8px;
-    min-height: 58px;
-  }
+  .weight-display { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; margin-bottom: 8px; display: flex; align-items: baseline; gap: 8px; min-height: 58px; }
   .wval { font-family: var(--mono); font-size: 32px; font-weight: 500; color: var(--text); letter-spacing: -.02em; }
   .wunit { font-size: 14px; color: var(--text3); }
-  .cursor {
-    width: 2px; height: 30px;
-    background: var(--accent);
-    display: inline-block;
-    animation: blink 1s step-end infinite;
-    vertical-align: middle;
-    margin-left: 2px;
-    border-radius: 1px;
-  }
+  .cursor { width: 2px; height: 30px; background: var(--accent); display: inline-block; animation: blink 1s step-end infinite; vertical-align: middle; margin-left: 2px; border-radius: 1px; }
   @keyframes blink { 50% { opacity: 0; } }
 
   .keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
-  .key {
-    padding: 16px 0;
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    background: var(--surface);
-    color: var(--text);
-    font-size: 20px;
-    font-family: var(--mono);
-    font-weight: 500;
-    cursor: pointer;
-    transition: background .08s, transform .08s;
-    text-align: center;
-    user-select: none;
-  }
+  .key { padding: 16px 0; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); color: var(--text); font-size: 20px; font-family: var(--mono); font-weight: 500; cursor: pointer; transition: background .08s, transform .08s; text-align: center; user-select: none; }
   .key:active { background: var(--surface2); transform: scale(.96); }
   .key.del { font-size: 15px; color: var(--text2); }
-  .key.dot { font-size: 22px; }
 
-  .save-btn {
-    width: 100%;
-    padding: 15px;
-    border: none;
-    border-radius: var(--radius-lg);
-    background: var(--accent);
-    color: #fff;
-    font-size: 15px;
-    font-family: var(--sans);
-    font-weight: 700;
-    cursor: pointer;
-    margin-top: 4px;
-    transition: opacity .15s, transform .1s;
-    letter-spacing: .02em;
-  }
-  .save-btn:active { opacity: .85; transform: scale(.99); }
+  .save-btn { width: 100%; padding: 15px; border: none; border-radius: var(--radius-lg); background: var(--accent); color: #fff; font-size: 15px; font-family: var(--sans); font-weight: 700; cursor: pointer; margin-top: 4px; transition: opacity .15s; letter-spacing: .02em; }
+  .save-btn:active { opacity: .85; }
   .save-btn:disabled { opacity: .5; cursor: not-allowed; }
 
-  .excel-btn {
-    width: 100%;
-    padding: 13px;
-    border: 1px solid var(--border2);
-    border-radius: var(--radius-lg);
-    background: var(--surface);
-    color: var(--text);
-    font-size: 14px;
-    font-family: var(--sans);
-    font-weight: 500;
-    cursor: pointer;
-    margin-top: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    transition: background .15s;
-  }
+  .excel-btn { width: 100%; padding: 13px; border: 1px solid var(--border2); border-radius: var(--radius-lg); background: var(--surface); color: var(--text); font-size: 14px; font-family: var(--sans); font-weight: 500; cursor: pointer; margin-top: 8px; display: flex; align-items: center; justify-content: center; gap: 8px; }
   .excel-btn:active { background: var(--surface2); }
   .excel-icon { width: 18px; height: 18px; fill: #217346; flex-shrink: 0; }
 
-  .toast {
-    position: fixed;
-    bottom: 28px;
-    left: 50%;
-    transform: translateX(-50%) translateY(20px);
-    background: var(--text);
-    color: #fff;
-    padding: 10px 20px;
-    border-radius: 24px;
-    font-size: 13px;
-    font-family: var(--sans);
-    opacity: 0;
-    transition: opacity .25s, transform .25s;
-    pointer-events: none;
-    white-space: nowrap;
-    z-index: 100;
-  }
-  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  /* 直近データ（入力タブ下部） */
+  .recent-section { margin-top: 20px; }
+  .recent-title { font-size: 11px; font-weight: 700; color: var(--text3); letter-spacing: .08em; text-transform: uppercase; margin-bottom: 8px; }
+  .recent-item { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 14px; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; }
+  .recent-left { flex: 1; }
+  .recent-ear { font-size: 13px; font-weight: 700; color: var(--text); font-family: var(--mono); }
+  .recent-meta { font-size: 11px; color: var(--text3); margin-top: 2px; }
+  .recent-weight { font-size: 20px; font-weight: 700; font-family: var(--mono); color: var(--accent); }
+  .recent-wunit { font-size: 11px; color: var(--text2); }
 
+  /* 統計 */
   .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; }
   .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 14px; }
   .stat-label { font-size: 11px; color: var(--text3); margin-bottom: 4px; font-weight: 500; letter-spacing: .04em; }
   .stat-val { font-size: 22px; font-weight: 700; color: var(--text); font-family: var(--mono); }
   .stat-unit { font-size: 12px; color: var(--text2); margin-left: 3px; }
 
-  .hitem {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 12px 14px;
-    margin-bottom: 8px;
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: 10px;
-  }
+  /* 履歴 */
+  .hitem { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 14px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
   .hitem-left { flex: 1; min-width: 0; }
   .hitem-ear { font-size: 14px; font-weight: 700; color: var(--text); font-family: var(--mono); display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
   .hitem-meta { font-size: 12px; color: var(--text3); margin-top: 3px; line-height: 1.6; }
   .hitem-weight { font-size: 24px; font-weight: 700; font-family: var(--mono); color: var(--text); white-space: nowrap; }
   .hitem-wunit { font-size: 12px; color: var(--text2); }
-
   .dg-badge { display: inline-block; padding: 2px 7px; border-radius: 6px; font-size: 11px; font-weight: 700; font-family: var(--mono); }
   .dg-good { background: var(--accent-light); color: var(--accent-text); }
   .dg-low { background: var(--warn-light); color: var(--warn); }
-
-  .del-btn {
-    background: none;
-    border: 1px solid var(--border2);
-    border-radius: 6px;
-    padding: 4px 8px;
-    font-size: 13px;
-    color: var(--text3);
-    cursor: pointer;
-    flex-shrink: 0;
-    transition: all .15s;
-  }
+  .del-btn { background: none; border: 1px solid var(--border2); border-radius: 6px; padding: 4px 8px; font-size: 13px; color: var(--text3); cursor: pointer; flex-shrink: 0; }
   .del-btn:active { background: var(--danger-light); color: var(--danger); border-color: var(--danger); }
 
   .empty { text-align: center; padding: 40px 20px; color: var(--text3); font-size: 14px; line-height: 2; }
   .empty-icon { font-size: 36px; display: block; margin-bottom: 8px; opacity: .4; }
 
-  .select-wrap { position: relative; }
-  .select-wrap::after {
-    content: '▾';
-    position: absolute;
-    right: 14px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: var(--text3);
-    pointer-events: none;
-    font-size: 14px;
-  }
+  .toast { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--text); color: #fff; padding: 10px 20px; border-radius: 24px; font-size: 13px; opacity: 0; transition: opacity .25s, transform .25s; pointer-events: none; white-space: nowrap; z-index: 100; }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
   @media (min-width: 480px) {
     body { padding: 24px 0; align-items: center; }
@@ -448,14 +152,12 @@
     <div class="farm-logo">🐷</div>
     <div class="farm-title">体重測定アプリ</div>
     <div class="farm-sub">養豚場管理システム</div>
-
     <div class="farm-card">
       <div class="farm-card-title">農場名を入力</div>
       <input class="farm-input" type="text" id="farm-input" placeholder="例: ○○養豚" maxlength="30">
       <div class="farm-error" id="farm-error">農場名を入力してください</div>
       <button class="farm-btn" onclick="startApp()">開始する →</button>
     </div>
-
     <div class="farm-history" id="farm-history" style="display:none;">
       <div class="farm-history-title">最近使った農場</div>
       <div id="farm-history-list"></div>
@@ -464,7 +166,6 @@
 
   <!-- メインアプリ -->
   <div id="app-screen">
-
     <div class="header">
       <div class="header-top">
         <div>
@@ -481,15 +182,15 @@
     <div class="tabs">
       <button class="tab-btn active" onclick="switchTab('input')">📋 入力</button>
       <button class="tab-btn" onclick="switchTab('history')">📊 履歴</button>
+      <button class="tab-btn" onclick="switchTab('stats')">📈 集計</button>
     </div>
 
     <!-- 入力タブ -->
     <div class="content" id="tab-input">
       <div class="fg">
-        <p class="slabel">耳刻（個体識別番号）</p>
+        <p class="slabel">耳刻 <span class="opt">（任意）</span></p>
         <input type="text" id="ear-tag" placeholder="例: 0123456789" />
       </div>
-
       <div class="fg">
         <p class="slabel">生年月日</p>
         <div class="date-row">
@@ -501,7 +202,6 @@
         </div>
         <div style="font-size:11px;color:var(--text3);margin-top:5px;">※ 今日から4〜8ヶ月前の範囲</div>
       </div>
-
       <div class="fg">
         <p class="slabel">性別</p>
         <div class="gender-row">
@@ -510,12 +210,10 @@
           <button class="gbtn" id="g-barrow" onclick="setGender('去勢', this)">✂ 去勢</button>
         </div>
       </div>
-
       <div class="fg">
-        <p class="slabel">豚房</p>
+        <p class="slabel">豚房 <span class="opt">（任意）</span></p>
         <input type="text" id="pen-select" placeholder="例: A棟-1房" />
       </div>
-
       <div class="fg">
         <p class="slabel">体重</p>
         <div class="weight-display">
@@ -534,74 +232,64 @@
           <button class="key" onclick="kp('2')">2</button>
           <button class="key" onclick="kp('3')">3</button>
           <button class="key" onclick="kp('0')">0</button>
-          <button class="key dot" onclick="kp('.')">.</button>
+          <button class="key" onclick="kp('.')">.</button>
           <button class="key del" onclick="kp('del')">⌫</button>
         </div>
       </div>
-
       <div class="fg">
         <p class="slabel">測定日</p>
         <input type="date" id="measure-date" style="width:100%;border:1px solid var(--border);border-radius:var(--radius);padding:11px 13px;font-size:15px;font-family:var(--sans);background:var(--surface);color:var(--text);outline:none;appearance:none;-webkit-appearance:none;" />
       </div>
-
       <button class="save-btn" id="save-btn" onclick="saveRecord()">記録する</button>
       <button class="excel-btn" onclick="exportExcel()">
         <svg class="excel-icon" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm-1 1.5L18.5 9H13V3.5zM8.5 18l2-3-2-3h1.8l1.2 2 1.2-2H14.5l-2 3 2 3H12.7l-1.2-2-1.2 2H8.5z"/></svg>
         Excel出力（全履歴）
       </button>
+
+      <!-- 直近データ -->
+      <div class="recent-section" id="recent-section" style="display:none;">
+        <div class="recent-title">直近の記録</div>
+        <div id="recent-list"></div>
+      </div>
     </div>
 
     <!-- 履歴タブ -->
     <div class="content" id="tab-history" style="display:none;">
-      <div class="stats-grid" id="stats-grid" style="display:none;">
-        <div class="stat-card">
-          <div class="stat-label">記録件数</div>
-          <div class="stat-val" id="stat-count">0<span class="stat-unit">件</span></div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">平均 DG</div>
-          <div class="stat-val" id="stat-dg">—</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">平均 体重</div>
-          <div class="stat-val" id="stat-wt">—</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">平均 日齢</div>
-          <div class="stat-val" id="stat-age">—</div>
-        </div>
-      </div>
       <div id="history-list">
         <div class="empty"><span class="empty-icon">📋</span>まだ記録がありません<br>入力タブから測定してください</div>
       </div>
     </div>
 
-  </div><!-- /app-screen -->
-
-</div><!-- /shell -->
+    <!-- 集計タブ -->
+    <div class="content" id="tab-stats" style="display:none;">
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-label">記録件数</div><div class="stat-val" id="stat-count">—</div></div>
+        <div class="stat-card"><div class="stat-label">平均 DG</div><div class="stat-val" id="stat-dg">—</div></div>
+        <div class="stat-card"><div class="stat-label">平均 体重</div><div class="stat-val" id="stat-wt">—</div></div>
+        <div class="stat-card"><div class="stat-label">平均 日齢</div><div class="stat-val" id="stat-age">—</div></div>
+        <div class="stat-card"><div class="stat-label">最大 体重</div><div class="stat-val" id="stat-max">—</div></div>
+        <div class="stat-card"><div class="stat-label">最小 体重</div><div class="stat-val" id="stat-min">—</div></div>
+      </div>
+      <div id="stats-empty" class="empty" style="display:none;"><span class="empty-icon">📈</span>データがありません</div>
+    </div>
+  </div>
+</div>
 
 <div class="toast" id="toast"></div>
 
 <script>
-  // ========== 設定 ==========
   const API_BASE = 'https://crimson-credit-a3df.daxiqitai2.workers.dev';
-
-  // ========== 状態 ==========
   let weightStr = '';
   let selectedGender = '雄';
   let records = [];
   let currentFarm = '';
   let currentKvKey = '';
 
-  // ========== 初期化 ==========
   document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('measure-date').value = todayStr();
     document.getElementById('measure-date').max   = todayStr();
     loadFarmHistory();
-    // Enterキーで開始
-    document.getElementById('farm-input').addEventListener('keydown', e => {
-      if (e.key === 'Enter') startApp();
-    });
+    document.getElementById('farm-input').addEventListener('keydown', e => { if (e.key==='Enter') startApp(); });
   });
 
   function todayStr() {
@@ -609,259 +297,206 @@
     return `${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,'0')}-${String(t.getDate()).padStart(2,'0')}`;
   }
 
-  // ========== 農場履歴 ==========
-  function getFarmHistory() {
-    try { return JSON.parse(localStorage.getItem('farm_history') || '[]'); } catch(e) { return []; }
-  }
+  // 農場履歴
+  function getFarmHistory() { try { return JSON.parse(localStorage.getItem('farm_history')||'[]'); } catch(e) { return []; } }
   function saveFarmHistory(name) {
-    let h = getFarmHistory().filter(x => x !== name);
-    h.unshift(name);
-    h = h.slice(0, 5);
+    let h = getFarmHistory().filter(x=>x!==name); h.unshift(name); h=h.slice(0,5);
     try { localStorage.setItem('farm_history', JSON.stringify(h)); } catch(e) {}
   }
   function loadFarmHistory() {
     const h = getFarmHistory();
     const wrap = document.getElementById('farm-history');
-    const list = document.getElementById('farm-history-list');
-    if (h.length === 0) { wrap.style.display = 'none'; return; }
-    wrap.style.display = 'block';
-    list.innerHTML = h.map(name => `
+    if (h.length===0) { wrap.style.display='none'; return; }
+    wrap.style.display='block';
+    document.getElementById('farm-history-list').innerHTML = h.map(name=>`
       <div class="farm-history-item" onclick="selectFarm('${escHtml(name)}')">
         <span class="farm-history-name">🏠 ${escHtml(name)}</span>
         <span class="farm-history-arrow">→</span>
-      </div>
-    `).join('');
+      </div>`).join('');
   }
-  function selectFarm(name) {
-    document.getElementById('farm-input').value = name;
-    startApp();
-  }
+  function selectFarm(name) { document.getElementById('farm-input').value=name; startApp(); }
 
-  // ========== アプリ開始 ==========
+  // アプリ開始
   function startApp() {
     const name = document.getElementById('farm-input').value.trim();
     const errEl = document.getElementById('farm-error');
-    if (!name) { errEl.style.display = 'block'; return; }
-    errEl.style.display = 'none';
-
+    if (!name) { errEl.style.display='block'; return; }
+    errEl.style.display='none';
     currentFarm  = name;
-    currentKvKey = 'pig_weight_' + name.replace(/\s+/g, '_');
-
+    currentKvKey = 'pig_weight_' + name.replace(/\s+/g,'_');
     document.getElementById('farm-name-display').textContent = name;
     document.getElementById('farm-screen').style.display = 'none';
     document.getElementById('app-screen').style.display  = 'flex';
-
     saveFarmHistory(name);
     initDOB();
     loadRecords();
   }
 
-  // ========== 農場切替 ==========
   function switchFarm() {
     if (!confirm('農場を切り替えますか？')) return;
-    records = [];
-    currentFarm = '';
-    currentKvKey = '';
-    document.getElementById('farm-input').value = '';
-    document.getElementById('app-screen').style.display  = 'none';
-    document.getElementById('farm-screen').style.display = 'flex';
+    records=[]; currentFarm=''; currentKvKey='';
+    document.getElementById('farm-input').value='';
+    document.getElementById('app-screen').style.display='none';
+    document.getElementById('farm-screen').style.display='flex';
     loadFarmHistory();
   }
 
-  // ========== KV 読み込み ==========
+  // KV
   async function loadRecords() {
     try {
       const res = await fetch(`${API_BASE}/api/get?key=${encodeURIComponent(currentKvKey)}`);
       if (!res.ok) throw new Error('通信エラー');
       const data = await res.json();
       records = data.value ? JSON.parse(data.value) : [];
-      updateCount();
-      renderHistory();
-    } catch(e) {
-      showToast('⚠ データ読み込み失敗: ' + e.message);
-    }
+      updateCount(); renderHistory(); renderStats(); renderRecent();
+    } catch(e) { showToast('⚠ データ読み込み失敗: '+e.message); }
   }
-
-  // ========== KV 保存 ==========
   async function saveToKV() {
     const res = await fetch(`${API_BASE}/api/set`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ key: currentKvKey, value: JSON.stringify(records) })
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({key:currentKvKey, value:JSON.stringify(records)})
     });
     if (!res.ok) throw new Error('保存エラー');
   }
 
-  // ========== DOB セレクト ==========
+  // DOBセレクト
   function initDOB() {
-    const today   = new Date();
-    const minDate = new Date(today.getFullYear(), today.getMonth() - 8, today.getDate());
-    const maxDate = new Date(today.getFullYear(), today.getMonth() - 4, today.getDate());
-
-    const months = [];
-    let cur = new Date(minDate.getFullYear(), minDate.getMonth(), 1);
-    const end = new Date(maxDate.getFullYear(), maxDate.getMonth(), 1);
-    while (cur <= end) { months.push({ y: cur.getFullYear(), m: cur.getMonth()+1 }); cur.setMonth(cur.getMonth()+1); }
-
-    const years = [...new Set(months.map(x => x.y))];
-    const selY = document.getElementById('dob-y');
-    selY.innerHTML = '<option value="">年</option>';
-    years.forEach(y => { const o = document.createElement('option'); o.value = y; o.textContent = y; selY.appendChild(o); });
-
-    function updateMonths() {
-      const y = parseInt(selY.value);
-      const selM = document.getElementById('dob-m');
-      const prev = selM.value;
-      selM.innerHTML = '<option value="">月</option>';
-      months.filter(x => x.y === y).forEach(x => { const o = document.createElement('option'); o.value = x.m; o.textContent = x.m; selM.appendChild(o); });
-      if (prev) selM.value = prev;
-      updateDays();
+    const today=new Date();
+    const minDate=new Date(today.getFullYear(),today.getMonth()-8,today.getDate());
+    const maxDate=new Date(today.getFullYear(),today.getMonth()-4,today.getDate());
+    const months=[];
+    let cur=new Date(minDate.getFullYear(),minDate.getMonth(),1);
+    const end=new Date(maxDate.getFullYear(),maxDate.getMonth(),1);
+    while(cur<=end){months.push({y:cur.getFullYear(),m:cur.getMonth()+1});cur.setMonth(cur.getMonth()+1);}
+    const years=[...new Set(months.map(x=>x.y))];
+    const selY=document.getElementById('dob-y');
+    selY.innerHTML='<option value="">年</option>';
+    years.forEach(y=>{const o=document.createElement('option');o.value=y;o.textContent=y;selY.appendChild(o);});
+    function updateMonths(){
+      const y=parseInt(selY.value); const selM=document.getElementById('dob-m'); const prev=selM.value;
+      selM.innerHTML='<option value="">月</option>';
+      months.filter(x=>x.y===y).forEach(x=>{const o=document.createElement('option');o.value=x.m;o.textContent=x.m;selM.appendChild(o);});
+      if(prev)selM.value=prev; updateDays();
     }
-    function updateDays() {
-      const y = parseInt(selY.value);
-      const m = parseInt(document.getElementById('dob-m').value);
-      const selD = document.getElementById('dob-d');
-      const prev = selD.value;
-      selD.innerHTML = '<option value="">日</option>';
-      if (!y || !m) return;
-      for (let d = 1; d <= new Date(y, m, 0).getDate(); d++) {
-        const date = new Date(y, m-1, d);
-        if (date < minDate || date > maxDate) continue;
-        const o = document.createElement('option'); o.value = d; o.textContent = d; selD.appendChild(o);
+    function updateDays(){
+      const y=parseInt(selY.value); const m=parseInt(document.getElementById('dob-m').value);
+      const selD=document.getElementById('dob-d'); const prev=selD.value;
+      selD.innerHTML='<option value="">日</option>';
+      if(!y||!m)return;
+      for(let d=1;d<=new Date(y,m,0).getDate();d++){
+        const date=new Date(y,m-1,d);
+        if(date<minDate||date>maxDate)continue;
+        const o=document.createElement('option');o.value=d;o.textContent=d;selD.appendChild(o);
       }
-      if (prev) selD.value = prev;
+      if(prev)selD.value=prev;
     }
-    selY.addEventListener('change', updateMonths);
-    document.getElementById('dob-m').addEventListener('change', updateDays);
-    if (years.length > 0) {
-      selY.value = years[years.length - 1];
-      updateMonths();
-      const selM = document.getElementById('dob-m');
-      if (selM.options.length > 1) selM.value = selM.options[selM.options.length-1].value;
+    selY.addEventListener('change',updateMonths);
+    document.getElementById('dob-m').addEventListener('change',updateDays);
+    if(years.length>0){
+      selY.value=years[years.length-1]; updateMonths();
+      const selM=document.getElementById('dob-m');
+      if(selM.options.length>1)selM.value=selM.options[selM.options.length-1].value;
       updateDays();
     }
   }
 
-  // ========== 性別 ==========
-  function setGender(g, el) {
-    selectedGender = g;
-    document.querySelectorAll('.gbtn').forEach(b => b.classList.remove('active'));
-    el.classList.add('active');
+  function setGender(g,el){selectedGender=g;document.querySelectorAll('.gbtn').forEach(b=>b.classList.remove('active'));el.classList.add('active');}
+
+  function kp(v){
+    if(v==='del'){weightStr=weightStr.slice(0,-1);}
+    else if(v==='.'){if(!weightStr.includes('.')&&weightStr.length>0)weightStr+='.';}
+    else{if(weightStr.length>=6)return;if(weightStr==='0'){weightStr=v;return;}weightStr+=v;}
+    const d=document.getElementById('wdisp'),u=document.getElementById('wunit');
+    if(!weightStr){d.textContent='—';u.style.display='none';}
+    else{d.textContent=weightStr;u.style.display='inline';}
   }
 
-  // ========== テンキー ==========
-  function kp(v) {
-    if (v === 'del') { weightStr = weightStr.slice(0, -1); }
-    else if (v === '.') { if (!weightStr.includes('.') && weightStr.length > 0) weightStr += '.'; }
-    else { if (weightStr.length >= 6) return; if (weightStr === '0') { weightStr = v; return; } weightStr += v; }
-    const d = document.getElementById('wdisp');
-    const u = document.getElementById('wunit');
-    if (!weightStr) { d.textContent = '—'; u.style.display = 'none'; }
-    else { d.textContent = weightStr; u.style.display = 'inline'; }
-  }
-
-  // ========== DOB 取得 ==========
-  function getDOB() {
-    const y = document.getElementById('dob-y').value;
-    const m = document.getElementById('dob-m').value;
-    const d = document.getElementById('dob-d').value;
-    if (!y || !m || !d) return null;
+  function getDOB(){
+    const y=document.getElementById('dob-y').value,m=document.getElementById('dob-m').value,d=document.getElementById('dob-d').value;
+    if(!y||!m||!d)return null;
     return `${y}/${String(m).padStart(2,'0')}/${String(d).padStart(2,'0')}`;
   }
-  function calcAge(dobStr, measureDateStr) {
-    const [y,m,d] = dobStr.split('/').map(Number);
-    return Math.floor(((measureDateStr ? new Date(measureDateStr) : new Date()) - new Date(y,m-1,d)) / 86400000);
+  function calcAge(dobStr,measureDateStr){
+    const [y,m,d]=dobStr.split('/').map(Number);
+    return Math.floor(((measureDateStr?new Date(measureDateStr):new Date())-new Date(y,m-1,d))/86400000);
   }
 
-  // ========== 記録保存 ==========
-  async function saveRecord() {
-    const ear = document.getElementById('ear-tag').value.trim();
-    const dob = getDOB();
-    const pen = document.getElementById('pen-select').value.trim();
-    const wt  = parseFloat(weightStr);
-    const measureVal = document.getElementById('measure-date').value;
-
-    if (!ear)                    { showToast('⚠ 耳刻を入力してください'); return; }
-    if (!dob)                    { showToast('⚠ 生年月日を入力してください'); return; }
-    if (!pen)                    { showToast('⚠ 豚房を入力してください'); return; }
-    if (!weightStr || isNaN(wt)) { showToast('⚠ 体重を入力してください'); return; }
-    if (!measureVal)             { showToast('⚠ 測定日を選択してください'); return; }
-
-    const btn = document.getElementById('save-btn');
-    btn.disabled = true; btn.textContent = '保存中...';
-
-    try {
-      const mDate = new Date(measureVal);
-      const dateStr = `${mDate.getFullYear()}/${String(mDate.getMonth()+1).padStart(2,'0')}/${String(mDate.getDate()).padStart(2,'0')}`;
-      const age = calcAge(dob, measureVal);
-      const dg  = age > 0 ? wt * 1000 / age : null;
-
-      records.unshift({ id: Date.now().toString(), ear, dob, pen, weight: wt, gender: selectedGender, date: dateStr, age, dg });
+  // 保存
+  async function saveRecord(){
+    const ear=document.getElementById('ear-tag').value.trim();
+    const dob=getDOB();
+    const pen=document.getElementById('pen-select').value.trim();
+    const wt=parseFloat(weightStr);
+    const measureVal=document.getElementById('measure-date').value;
+    if(!dob){showToast('⚠ 生年月日を入力してください');return;}
+    if(!weightStr||isNaN(wt)){showToast('⚠ 体重を入力してください');return;}
+    if(!measureVal){showToast('⚠ 測定日を選択してください');return;}
+    const btn=document.getElementById('save-btn');
+    btn.disabled=true;btn.textContent='保存中...';
+    try{
+      const mDate=new Date(measureVal);
+      const dateStr=`${mDate.getFullYear()}/${String(mDate.getMonth()+1).padStart(2,'0')}/${String(mDate.getDate()).padStart(2,'0')}`;
+      const age=calcAge(dob,measureVal);
+      const dg=age>0?wt*1000/age:null;
+      records.unshift({id:Date.now().toString(),ear:ear||'—',dob,pen:pen||'—',weight:wt,gender:selectedGender,date:dateStr,age,dg});
       await saveToKV();
-      updateCount();
-      renderHistory();
+      updateCount();renderHistory();renderStats();renderRecent();
       showToast('✓ 記録しました');
-
-      weightStr = '';
-      document.getElementById('wdisp').textContent = '—';
-      document.getElementById('wunit').style.display = 'none';
-      document.getElementById('ear-tag').value = '';
-      document.getElementById('dob-y').value = '';
-      document.getElementById('dob-m').value = '';
-      document.getElementById('dob-d').value = '';
-      document.getElementById('pen-select').value = '';
-      document.getElementById('measure-date').value = todayStr();
-      selectedGender = '雄';
-      document.querySelectorAll('.gbtn').forEach(b => b.classList.remove('active'));
+      weightStr='';
+      document.getElementById('wdisp').textContent='—';
+      document.getElementById('wunit').style.display='none';
+      document.getElementById('ear-tag').value='';
+      document.getElementById('dob-y').value='';
+      document.getElementById('dob-m').value='';
+      document.getElementById('dob-d').value='';
+      document.getElementById('pen-select').value='';
+      document.getElementById('measure-date').value=todayStr();
+      selectedGender='雄';
+      document.querySelectorAll('.gbtn').forEach(b=>b.classList.remove('active'));
       document.getElementById('g-boar').classList.add('active');
-    } catch(e) {
-      records.shift();
-      showToast('❌ 保存失敗: ' + e.message);
-    } finally {
-      btn.disabled = false; btn.textContent = '記録する';
-    }
+    }catch(e){records.shift();showToast('❌ 保存失敗: '+e.message);}
+    finally{btn.disabled=false;btn.textContent='記録する';}
   }
 
-  // ========== 削除 ==========
-  async function deleteRecord(id) {
-    if (!confirm('この記録を削除しますか？')) return;
-    records = records.filter(r => r.id !== id);
-    try { await saveToKV(); updateCount(); renderHistory(); showToast('✓ 削除しました'); }
-    catch(e) { showToast('❌ 削除失敗: ' + e.message); }
+  async function deleteRecord(id){
+    if(!confirm('この記録を削除しますか？'))return;
+    records=records.filter(r=>r.id!==id);
+    try{await saveToKV();updateCount();renderHistory();renderStats();renderRecent();showToast('✓ 削除しました');}
+    catch(e){showToast('❌ 削除失敗: '+e.message);}
   }
 
-  // ========== 件数更新 ==========
-  function updateCount() {
-    document.getElementById('rec-count').textContent = records.length + '件';
+  function updateCount(){document.getElementById('rec-count').textContent=records.length+'件';}
+
+  // 直近データ（入力タブ下部）
+  function renderRecent(){
+    const sec=document.getElementById('recent-section');
+    const list=document.getElementById('recent-list');
+    if(records.length===0){sec.style.display='none';return;}
+    sec.style.display='block';
+    const recent=records.slice(0,5);
+    list.innerHTML=recent.map(r=>`
+      <div class="recent-item">
+        <div class="recent-left">
+          <div class="recent-ear">${r.ear!=='—'?escHtml(r.ear):'（耳刻なし）'}</div>
+          <div class="recent-meta">${r.date}　${r.gender}　${r.age}日齢${r.pen!=='—'?'　'+escHtml(r.pen):''}</div>
+        </div>
+        <div style="text-align:right;">
+          <div class="recent-weight">${r.weight.toFixed(1)}</div>
+          <div class="recent-wunit">kg</div>
+        </div>
+      </div>`).join('');
   }
 
-  // ========== 履歴描画 ==========
-  function renderHistory() {
-    const el = document.getElementById('history-list');
-    const sg = document.getElementById('stats-grid');
-    if (records.length === 0) {
-      el.innerHTML = '<div class="empty"><span class="empty-icon">📋</span>まだ記録がありません<br>入力タブから測定してください</div>';
-      sg.style.display = 'none'; return;
-    }
-    sg.style.display = 'grid';
-    const dgVals  = records.filter(r => r.dg !== null).map(r => r.dg);
-    const wtVals  = records.map(r => r.weight);
-    const ageVals = records.map(r => r.age);
-    const avgDG   = dgVals.length ? dgVals.reduce((a,b)=>a+b,0)/dgVals.length : null;
-    const avgWT   = wtVals.reduce((a,b)=>a+b,0)/wtVals.length;
-    const avgAge  = ageVals.reduce((a,b)=>a+b,0)/ageVals.length;
-
-    document.getElementById('stat-count').innerHTML = records.length + '<span class="stat-unit">件</span>';
-    document.getElementById('stat-dg').innerHTML    = avgDG ? Math.round(avgDG) + '<span class="stat-unit">g/日</span>' : '—';
-    document.getElementById('stat-wt').innerHTML    = avgWT.toFixed(1) + '<span class="stat-unit">kg</span>';
-    document.getElementById('stat-age').innerHTML   = Math.round(avgAge) + '<span class="stat-unit">日</span>';
-
-    el.innerHTML = records.map(r => {
-      const dgBadge = r.dg !== null ? `<span class="dg-badge ${r.dg>=700?'dg-good':'dg-low'}">DG ${Math.round(r.dg)}g/日</span>` : '';
+  // 履歴
+  function renderHistory(){
+    const el=document.getElementById('history-list');
+    if(records.length===0){el.innerHTML='<div class="empty"><span class="empty-icon">📋</span>まだ記録がありません<br>入力タブから測定してください</div>';return;}
+    el.innerHTML=records.map(r=>{
+      const dgBadge=r.dg!==null?`<span class="dg-badge ${r.dg>=700?'dg-good':'dg-low'}">DG ${Math.round(r.dg)}g/日</span>`:'';
       return `<div class="hitem">
         <div class="hitem-left">
-          <div class="hitem-ear">${escHtml(r.ear)} ${dgBadge}</div>
-          <div class="hitem-meta">${escHtml(r.pen)} · ${r.gender} · ${r.age}日齢 · ${r.dob}<br>${r.date}</div>
+          <div class="hitem-ear">${r.ear!=='—'?escHtml(r.ear):'（耳刻なし）'} ${dgBadge}</div>
+          <div class="hitem-meta">${r.pen!=='—'?escHtml(r.pen)+' · ':''} ${r.gender} · ${r.age}日齢 · ${r.dob}<br>${r.date}</div>
         </div>
         <div style="text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
           <div><div class="hitem-weight">${r.weight.toFixed(1)}</div><div class="hitem-wunit">kg</div></div>
@@ -871,34 +506,55 @@
     }).join('');
   }
 
-  // ========== Excel出力 ==========
-  function exportExcel() {
-    if (records.length === 0) { showToast('⚠ 記録がありません'); return; }
-    const data = [['測定日','耳刻','生年月日','日齢（日）','豚房','性別','体重（kg）','DG（g/日）']];
-    records.forEach(r => data.push([r.date, r.ear, r.dob, r.age, r.pen, r.gender, parseFloat(r.weight.toFixed(1)), r.dg!==null?Math.round(r.dg):'']));
-    const ws = XLSX.utils.aoa_to_sheet(data);
-    ws['!cols'] = [{wch:18},{wch:14},{wch:12},{wch:10},{wch:12},{wch:6},{wch:12},{wch:12}];
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, '体重記録');
-    const t = new Date();
-    XLSX.writeFile(wb, `体重記録_${currentFarm}_${t.getFullYear()}${String(t.getMonth()+1).padStart(2,'0')}${String(t.getDate()).padStart(2,'0')}.xlsx`);
+  // 集計
+  function renderStats(){
+    if(records.length===0){
+      ['stat-count','stat-dg','stat-wt','stat-age','stat-max','stat-min'].forEach(id=>document.getElementById(id).innerHTML='—');
+      return;
+    }
+    const dgVals=records.filter(r=>r.dg!==null).map(r=>r.dg);
+    const wtVals=records.map(r=>r.weight);
+    const ageVals=records.map(r=>r.age);
+    const avgDG=dgVals.length?dgVals.reduce((a,b)=>a+b,0)/dgVals.length:null;
+    const avgWT=wtVals.reduce((a,b)=>a+b,0)/wtVals.length;
+    const avgAge=ageVals.reduce((a,b)=>a+b,0)/ageVals.length;
+    document.getElementById('stat-count').innerHTML=records.length+'<span class="stat-unit">件</span>';
+    document.getElementById('stat-dg').innerHTML=avgDG?Math.round(avgDG)+'<span class="stat-unit">g/日</span>':'—';
+    document.getElementById('stat-wt').innerHTML=avgWT.toFixed(1)+'<span class="stat-unit">kg</span>';
+    document.getElementById('stat-age').innerHTML=Math.round(avgAge)+'<span class="stat-unit">日</span>';
+    document.getElementById('stat-max').innerHTML=Math.max(...wtVals).toFixed(1)+'<span class="stat-unit">kg</span>';
+    document.getElementById('stat-min').innerHTML=Math.min(...wtVals).toFixed(1)+'<span class="stat-unit">kg</span>';
+  }
+
+  // Excel
+  function exportExcel(){
+    if(records.length===0){showToast('⚠ 記録がありません');return;}
+    const data=[['測定日','耳刻','生年月日','日齢（日）','豚房','性別','体重（kg）','DG（g/日）']];
+    records.forEach(r=>data.push([r.date,r.ear,r.dob,r.age,r.pen,r.gender,parseFloat(r.weight.toFixed(1)),r.dg!==null?Math.round(r.dg):'']));
+    const ws=XLSX.utils.aoa_to_sheet(data);
+    ws['!cols']=[{wch:18},{wch:14},{wch:12},{wch:10},{wch:12},{wch:6},{wch:12},{wch:12}];
+    const wb=XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb,ws,'体重記録');
+    const t=new Date();
+    XLSX.writeFile(wb,`体重記録_${currentFarm}_${t.getFullYear()}${String(t.getMonth()+1).padStart(2,'0')}${String(t.getDate()).padStart(2,'0')}.xlsx`);
     showToast('✓ Excelをダウンロードしました');
   }
 
-  // ========== タブ切替 ==========
-  function switchTab(tab) {
-    document.getElementById('tab-input').style.display   = tab==='input'   ? 'block' : 'none';
-    document.getElementById('tab-history').style.display = tab==='history' ? 'block' : 'none';
-    document.querySelectorAll('.tab-btn').forEach((t,i) => t.classList.toggle('active', (i===0&&tab==='input')||(i===1&&tab==='history')));
+  function switchTab(tab){
+    ['input','history','stats'].forEach(t=>{
+      document.getElementById('tab-'+t).style.display=t===tab?'block':'none';
+    });
+    document.querySelectorAll('.tab-btn').forEach((btn,i)=>{
+      btn.classList.toggle('active',['input','history','stats'][i]===tab);
+    });
   }
 
-  // ========== ユーティリティ ==========
-  function showToast(msg) {
-    const el = document.getElementById('toast');
-    el.textContent = msg; el.classList.add('show');
-    setTimeout(() => el.classList.remove('show'), 2400);
+  function showToast(msg){
+    const el=document.getElementById('toast');
+    el.textContent=msg;el.classList.add('show');
+    setTimeout(()=>el.classList.remove('show'),2400);
   }
-  function escHtml(str) {
+  function escHtml(str){
     return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   }
 </script>
